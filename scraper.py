@@ -1,14 +1,14 @@
 import json
 import os
+import csv
 import requests
-from datetime import datetime
 
-# We use Gemini's Free Tier to categorize the text
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 def categorize_tweet(text):
     if not GEMINI_API_KEY:
-        return "Uncategorized"
+        print("WARNING: GEMINI_API_KEY environment variable is missing!")
+        return "Product Strategy"
     
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     headers = {"Content-Type": "application/json"}
@@ -16,73 +16,75 @@ def categorize_tweet(text):
     prompt = f"""
     Categorize this tweet by startup founder Nikita Bier into exactly ONE of these topics: 
     'Viral Growth Loops', 'Product Strategy', 'Consumer Psychology', 'Fundraising & Exits', or 'Satire & Humor'.
-    Respond with ONLY the category name.
+    Respond with ONLY the category name. Do not include quotes or punctuation.
     
     Tweet: "{text}"
     """
-    
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     
     try:
-        response = requests.post(url, headers=headers, json=payload)
-        result = response.json()
-        category = result['candidates'][0]['content']['parts'][0]['text'].strip()
-        return category if category in ['Viral Growth Loops', 'Product Strategy', 'Consumer Psychology', 'Fundraising & Exits', 'Satire & Humor'] else "Product Strategy"
-    except:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        res_json = response.json()
+        
+        # If the API returned an error message, print it clearly in logs
+        if "error" in res_json:
+            print(f"Gemini API Error: {res_json['error']['message']}")
+            return "Product Strategy"
+            
+        category = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+        valid_categories = ['Viral Growth Loops', 'Product Strategy', 'Consumer Psychology', 'Fundraising & Exits', 'Satire & Humor']
+        return category if category in valid_categories else "Product Strategy"
+    except Exception as e:
+        print(f"Network/Parsing Error during categorization: {e}")
         return "Product Strategy"
 
-def fetch_latest_tweets():
-    # Using an open guest-token wrapper/RSS bridge to grab his public feed for free
-    # For stability, we pull from an open RSS-to-JSON mirror of X profiles
-    url = "https://api.rss2json.com/v1/api.json?rss_url=https://nitter.net/nikitabier/rss"
-    
-    try:
-        response = requests.get(url, timeout=10)
-        items = response.json().get('items', [])
-        
-        new_tweets = []
-        for item in items:
-            # Extracting the Tweet ID from the link
-            tweet_id = item['link'].split('/')[-1].split('#')[0]
-            clean_text = item['description'] # Cleans up HTML if necessary
-            
-            new_tweets.append({
-                "id": tweet_id,
-                "text": item['title'], # Fallback text snippet
-                "date": item['pubDate'].split(' ')[0]
-            })
-        return new_tweets
-    except Exception as e:
-        print(f"Error fetching: {e}")
-        return []
-
 def main():
+    csv_path = "raw_tweets.csv"
     json_path = "docs/tweets.json"
     
-    # Load existing database
+    if not os.path.exists(csv_path):
+        print("No raw_tweets.csv file detected in root folder. Skipping sync.")
+        return
+
     if os.path.exists(json_path):
         with open(json_path, "r") as f:
             database = json.load(f)
     else:
         database = []
         
-    existing_ids = {t["id"] for t in database}
-    fetched = fetch_latest_tweets()
-    
+    existing_ids = {str(t["id"]) for t in database}
     has_updates = False
-    for tweet in fetched:
-        if tweet["id"] not in existing_ids:
-            print(f"Processing new tweet: {tweet['id']}")
-            tweet["category"] = categorize_tweet(tweet["text"])
-            database.insert(0, tweet) # Add new ones to the top
-            has_updates = True
+    
+    with open(csv_path, mode='r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            tweet_id = str(row.get('id') or row.get('tweet_id') or row.get('post_id')).strip()
+            text = row.get('text') or row.get('tweetContent') or row.get('content')
+            date = row.get('created_at') or row.get('date') or row.get('timestamp')
             
+            # Filter out blank/short noise tweets right here
+            if not tweet_id or not text or len(str(text).strip()) < 15:
+                continue
+                
+            if tweet_id not in existing_ids:
+                print(f"Categorizing new item: {tweet_id}")
+                clean_date = date.split('T')[0] if 'T' in str(date) else str(date)
+                category = categorize_tweet(text)
+                
+                database.append({
+                    "id": tweet_id,
+                    "text": str(text),
+                    "category": category,
+                    "date": clean_date
+                })
+                has_updates = True
+
     if has_updates:
         with open(json_path, "w") as f:
             json.dump(database, f, indent=2)
-        print("Database updated successfully.")
+        print("Success! Local JSON database has been updated.")
     else:
-        print("No new tweets found.")
+        print("All entries in the CSV already exist inside the database.")
 
 if __name__ == "__main__":
     main()
