@@ -24,7 +24,7 @@
                 <div class="space-y-1">
                     <button 
                         v-for="cat in categories" 
-                        @click="selectedCategory = cat"
+                        @click="setCategory(cat)"
                         :class="selectedCategory === cat ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'"
                         class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition">
                         {{ cat }}
@@ -33,12 +33,12 @@
             </aside>
 
             <main class="md:col-span-3">
-                <div v-if="filteredTweets.length === 0" class="text-center py-12 text-gray-500">
-                    No tweets found in this category yet.
+                <div v-if="visibleTweets.length === 0" class="text-center py-12 text-gray-500">
+                    No insights loaded under this section yet.
                 </div>
                 
                 <div class="space-y-6">
-                    <div v-for="tweet in filteredTweets" :key="tweet.id" class="bg-gray-950 p-4 rounded-xl border border-gray-800 shadow-xl">
+                    <div v-for="tweet in visibleTweets" :key="tweet.id" class="bg-gray-950 p-4 rounded-xl border border-gray-800 shadow-xl">
                         <span class="inline-block text-xs font-bold px-2.5 py-1 rounded-full bg-gray-800 text-emerald-400 mb-4">
                             {{ tweet.category }}
                         </span>
@@ -47,6 +47,13 @@
                             <a :href="'https://twitter.com/nikitabier/status/' + tweet.id"></a>
                         </blockquote>
                     </div>
+                </div>
+
+                <!-- Load More Pagination Control -->
+                <div v-if="visibleTweets.length < filteredTweets.length" class="text-center mt-12">
+                    <button @click="loadMore" class="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2.5 px-6 rounded-xl transition shadow-md">
+                        Load More Entries
+                    </button>
                 </div>
             </main>
         </div>
@@ -59,30 +66,50 @@
             setup() {
                 const tweets = ref([]);
                 const selectedCategory = ref('All Topics');
+                const displayLimit = ref(10); // Start with 10 to keep X embeds fast
                 const categories = ['All Topics', 'Viral Growth Loops', 'Product Strategy', 'Consumer Psychology', 'Fundraising & Exits', 'Satire & Humor'];
 
-                onMounted(async () => {
+                const loadTweets = async () => {
                     try {
-                        const res = await fetch('./tweets.json');
+                        const res = await fetch('./tweets.json?t=' + Date.now());
                         tweets.value = await res.json();
-                        
-                        // Force X widgets to scan the DOM and render the embeds beautifully
-                        nextTick(() => {
-                            if (window.twttr && window.twttr.widgets) {
-                                window.twttr.widgets.load();
-                            }
-                        });
+                        renderXWidgets();
                     } catch (err) {
                         console.error("Failed to load tweets database", err);
                     }
-                });
+                };
+
+                const renderXWidgets = () => {
+                    nextTick(() => {
+                        if (window.twttr && window.twttr.widgets) {
+                            window.twttr.widgets.load();
+                        }
+                    });
+                };
+
+                onMounted(loadTweets);
 
                 const filteredTweets = computed(() => {
                     if (selectedCategory.value === 'All Topics') return tweets.value;
                     return tweets.value.filter(t => t.category === selectedCategory.value);
                 });
 
-                return { tweets, categories, selectedCategory, filteredTweets };
+                const visibleTweets = computed(() => {
+                    return filteredTweets.value.slice(0, displayLimit.value);
+                });
+
+                const setCategory = (cat) => {
+                    selectedCategory.value = cat;
+                    displayLimit.value = 10; // Reset pagination window
+                    renderXWidgets();
+                };
+
+                const loadMore = () => {
+                    displayLimit.value += 10;
+                    renderXWidgets();
+                };
+
+                return { tweets, categories, selectedCategory, filteredTweets, visibleTweets, setCategory, loadMore };
             }
         }).mount('#app');
     </script>
