@@ -8,7 +8,6 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
     <style>
-        /* Custom scrollbar matching X's sleek layout constraints */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #000000; }
         ::-webkit-scrollbar-thumb { background: #202327; border-radius: 4px; }
@@ -22,82 +21,57 @@
         
         <header class="w-[275px] shrink-0 sticky top-0 h-screen flex flex-col justify-between px-3 pb-4 pt-2 border-r border-[#2f3336]">
             <div class="flex flex-col items-start w-full">
-                <div class="p-3 hover:bg-[#181818] rounded-full transition cursor-pointer inline-flex items-center justify-center mb-2 ml-1">
+                <div class="p-3 hover:bg-[#181818] rounded-full transition cursor-pointer inline-flex items-center justify-center mb-2 ml-1" @click="setCategory('All Topics')">
                     <span class="text-3xl font-black tracking-tighter text-white">N</span>
                 </div>
 
                 <nav class="w-full space-y-1">
-                    <button @click="setCategory('All Topics')" 
-                       :class="selectedCategory === 'All Topics' ? 'font-bold text-white' : 'font-normal text-[#e7e9ea]'"
-                       class="flex items-center gap-5 w-full text-left px-4 py-3 rounded-full text-xl hover:bg-[#181818] transition group">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                        <span>Home Archive</span>
-                    </button>
-                    
-                    <button @click="setCategory('Viral Growth Loops')" 
-                       :class="selectedCategory === 'Viral Growth Loops' ? 'font-bold text-white' : 'font-normal text-[#e7e9ea]'"
-                       class="flex items-center gap-5 w-full text-left px-4 py-3 rounded-full text-xl hover:bg-[#181818] transition">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span>Growth Loops</span>
-                    </button>
-
-                    <button @click="setCategory('Consumer Psychology')" 
-                       :class="selectedCategory === 'Consumer Psychology' ? 'font-bold text-white' : 'font-normal text-[#e7e9ea]'"
-                       class="flex items-center gap-5 w-full text-left px-4 py-3 rounded-full text-xl hover:bg-[#181818] transition">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                        <span>Psychology</span>
-                    </button>
-
-                    <button @click="setCategory('Fundraising & Exits')" 
-                       :class="selectedCategory === 'Fundraising & Exits' ? 'font-bold text-white' : 'font-normal text-[#e7e9ea]'"
-                       class="flex items-center gap-5 w-full text-left px-4 py-3 rounded-full text-xl hover:bg-[#181818] transition">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Exits & VC</span>
+                    <button v-for="cat in categories" :key="cat" @click="setCategory(cat)" 
+                       :class="selectedCategory === cat ? 'font-bold text-white bg-[#181818]' : 'font-normal text-[#e7e9ea]'"
+                       class="flex items-center gap-4 w-full text-left px-4 py-3 rounded-full text-lg hover:bg-[#181818] transition">
+                        
+                        <svg v-if="cat === 'All Topics'" class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <svg v-if="cat === 'Viral Growth Loops'" class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <svg v-if="cat === 'Consumer Psychology'" class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <svg v-if="cat === 'Fundraising & Exits'" class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg v-if="cat === 'Satire & Humor'" class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg v-if="cat === 'Product Strategy'" class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        
+                        <span>{{ cat }}</span>
                     </button>
                 </nav>
-
-                <button class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold w-[90%] py-3.5 rounded-full mt-6 text-lg transition hidden md:block shadow-sm">
-                    Post
-                </button>
             </div>
 
-            <div class="flex items-center justify-between p-3 rounded-full hover:bg-[#181818] cursor-pointer transition w-full">
+            <a href="https://x.com/jimmy9126" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 rounded-full hover:bg-[#181818] cursor-pointer transition w-full mb-2">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center font-bold text-black text-sm shadow-inner">
-                        NB
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-sm shadow-md">
+                        JM
                     </div>
-                    <div class="flex flex-col hidden lg:block leading-tight">
-                        <span class="font-bold text-[15px] text-white">Nikita Bier</span>
-                        <span class="text-[#71767b] text-[15px]">@nikitabier</span>
+                    <div class="flex flex-col leading-tight">
+                        <span class="font-bold text-[15px] text-white">Jimmy Mehta</span>
+                        <span class="text-[#71767b] text-[14px]">@jimmy9126</span>
                     </div>
                 </div>
-                <span class="text-[#e7e9ea] font-bold text-lg pr-2 hidden lg:inline">···</span>
-            </div>
+                <span class="text-[#71767b] text-xs font-semibold bg-[#202327] px-2.5 py-1 rounded-full border border-[#2f3336]">Creator</span>
+            </a>
         </header>
 
         <main class="flex-1 min-w-0 max-w-[600px] border-r border-[#2f3336] min-h-screen">
+            
+            <div class="bg-blue-950/40 border-b border-blue-900/50 px-4 py-2.5 text-xs text-blue-300 font-medium leading-normal text-center">
+                ⚠️ <span class="font-bold text-white">Disclaimer:</span> This page has no affiliation with Nikita Bier or X. It is a pure fan-made open-source archive developed solely for the simplified accessibility of educational framework logs.
+            </div>
+
             <div class="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
                 <div class="px-4 py-3">
-                    <h2 class="text-xl font-bold text-white tracking-tight">NikiPedia</h2>
-                    <p class="text-xs text-[#71767b] font-medium mt-0.5">{{ filteredTweets.length }} total knowledge crumbs</p>
-                </div>
-                
-                <div class="flex w-full text-center font-bold text-[15px] text-[#71767b]">
-                    <div class="flex-1 py-3.5 hover:bg-[#161616] cursor-pointer transition relative flex justify-center text-white">
-                        <span class="relative py-1">
-                            Insights Matrix
-                            <div class="absolute bottom-0 left-0 right-0 h-1 bg-[#1d9bf0] rounded-full"></div>
-                        </span>
-                    </div>
-                    <div class="flex-1 py-3.5 hover:bg-[#161616] cursor-pointer transition flex justify-center items-center">
-                        <span>Curation Deck</span>
-                    </div>
+                    <h2 class="text-xl font-bold text-white tracking-tight">{{ selectedCategory }}</h2>
+                    <p class="text-xs text-[#71767b] font-medium mt-0.5">Showing {{ filteredTweets.length }} insights</p>
                 </div>
             </div>
 
             <div class="p-4 space-y-4">
                 <div v-if="visibleTweets.length === 0" class="text-center py-24 text-[#71767b] text-base font-medium">
-                    No matching knowledge elements found in this workspace view.
+                    No matching insights discovered in this workspace perspective.
                 </div>
                 
                 <div v-for="tweet in visibleTweets" :key="tweet.id" class="border border-[#2f3336] rounded-xl overflow-hidden bg-black shadow-sm hover:bg-[#050505] transition">
@@ -130,43 +104,30 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#71767b] group-focus-within:text-[#1d9bf0] transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
-                <input type="text" placeholder="Search NikiPedia" 
+                <input type="text" v-model="searchQuery" placeholder="Search archive text content..." 
                        class="w-full bg-[#202327] border border-transparent focus:border-[#1d9bf0] focus:bg-black text-[#e7e9ea] placeholder-[#71767b] text-[15px] rounded-full pl-12 pr-4 py-3 outline-none transition font-normal" />
+                
+                <button v-if="searchQuery" @click="searchQuery = ''" class="absolute inset-y-0 right-0 pr-4 flex items-center text-[#1d9bf0] hover:text-white transition text-xs font-bold">
+                    Clear
+                </button>
             </div>
 
             <div class="bg-[#16181c] rounded-2xl border border-transparent overflow-hidden">
-                <h3 class="text-xl font-extrabold text-white px-4 pt-3 pb-2 tracking-tight">What's happening</h3>
+                <h3 class="text-xl font-extrabold text-white px-4 pt-3 pb-2 tracking-tight">Archive Dashboard</h3>
                 
-                <div class="px-4 py-3 hover:bg-[#1c1f23] cursor-pointer transition border-t border-[#2f3336]/40 leading-snug">
-                    <div class="flex justify-between text-xs text-[#71767b] font-medium"><span>Product Management · Trending</span><span>···</span></div>
-                    <div class="font-bold text-[15px] text-white mt-0.5">Product Strategy</div>
-                    <div class="text-xs text-[#71767b] mt-1 font-medium">442 tactical breakdowns</div>
-                </div>
-
-                <div class="px-4 py-3 hover:bg-[#1c1f23] cursor-pointer transition border-t border-[#2f3336]/40 leading-snug">
-                    <div class="flex justify-between text-xs text-[#71767b] font-medium"><span>Growth Marketing · Trending</span><span>···</span></div>
-                    <div class="font-bold text-[15px] text-white mt-0.5">Viral Loops & K-Factor</div>
-                    <div class="text-xs text-[#71767b] mt-1 font-medium">Ultra-high density loops</div>
-                </div>
-
-                <div class="px-4 py-3 hover:bg-[#1c1f23] cursor-pointer transition border-t border-[#2f3336]/40 leading-snug">
-                    <div class="flex justify-between text-xs text-[#71767b] font-medium"><span>Consumer Apps · Trending</span><span>···</span></div>
-                    <div class="font-bold text-[15px] text-white mt-0.5">Gen-Z Psychology</div>
-                    <div class="text-xs text-[#71767b] mt-1 font-medium">Anonymity & identity metrics</div>
-                </div>
-                
-                <div class="px-4 py-3 text-[#1d9bf0] text-[15px] hover:bg-[#1c1f23] cursor-pointer transition border-t border-[#2f3336]/40 font-semibold">
-                    Show more
+                <div v-for="stat in dynamicStats" :key="stat.name" @click="setCategory(stat.name)" class="px-4 py-3 hover:bg-[#1c1f23] cursor-pointer transition border-t border-[#2f3336]/40 leading-snug">
+                    <div class="flex justify-between text-xs text-[#71767b] font-medium"><span>Metrics Analysis</span><span>View →</span></div>
+                    <div class="font-bold text-[15px] text-white mt-0.5">{{ stat.name }}</div>
+                    <div class="text-xs text-[#1d9bf0] mt-1 font-semibold">{{ stat.count }} indexed elements</div>
                 </div>
             </div>
 
             <footer class="px-4 text-xs text-[#71767b] font-normal tracking-tight space-y-1 leading-normal">
                 <div class="flex flex-wrap gap-x-3 gap-y-0.5">
-                    <a href="#" class="hover:underline">Terms of Service</a>
-                    <a href="#" class="hover:underline">Privacy Policy</a>
-                    <a href="#" class="hover:underline">Cookie Policy</a>
+                    <a href="https://github.com/jimmy9126/nikipedia" target="_blank" class="hover:underline">GitHub Workspace Source</a>
+                    <a href="https://x.com/jimmy9126" target="_blank" class="hover:underline">Created by @jimmy9126</a>
                 </div>
-                <div>© 2026 NikiPedia Corp. Inspired by / X.</div>
+                <div>© 2026 NikiPedia Corp. Designed with Vue & Tailwind edge hooks.</div>
             </footer>
         </aside>
 
@@ -179,7 +140,17 @@
             setup() {
                 const tweets = ref([]);
                 const selectedCategory = ref('All Topics');
+                const searchQuery = ref('');
                 const displayLimit = ref(10);
+                
+                const categories = [
+                    'All Topics', 
+                    'Viral Growth Loops', 
+                    'Consumer Psychology', 
+                    'Fundraising & Exits', 
+                    'Satire & Humor', 
+                    'Product Strategy'
+                ];
 
                 const loadTweets = async () => {
                     try {
@@ -201,9 +172,42 @@
 
                 onMounted(loadTweets);
 
+                // DYNAMIC METRIC GENERATION: Computes volume straight from live data
+                const dynamicStats = computed(() => {
+                    const tracking = {};
+                    categories.forEach(c => { if(c !== 'All Topics') tracking[c] = 0; });
+                    
+                    tweets.value.forEach(t => {
+                        if (t.category in tracking) {
+                            tracking[t.category]++;
+                        } else if (t.category !== 'All Topics') {
+                            // Fallback assignment catcher
+                            tracking['Product Strategy']++;
+                        }
+                    });
+                    
+                    return Object.keys(tracking).map(key => ({
+                        name: key,
+                        count: tracking[key]
+                    })).sort((a,b) => b.count - a.count);
+                });
+
+                // FUNCTIONAL SEARCH + FILTER LOGIC PATTERN
                 const filteredTweets = computed(() => {
-                    if (selectedCategory.value === 'All Topics') return tweets.value;
-                    return tweets.value.filter(t => t.category === selectedCategory.value);
+                    let result = tweets.value;
+                    
+                    // Apply category tab filtering
+                    if (selectedCategory.value !== 'All Topics') {
+                        result = result.filter(t => t.category === selectedCategory.value);
+                    }
+                    
+                    // Apply real-time search match text filtering
+                    if (searchQuery.value.trim() !== '') {
+                        const query = searchQuery.value.toLowerCase().trim();
+                        result = result.filter(t => t.text && t.text.toLowerCase().includes(query));
+                    }
+                    
+                    return result;
                 });
 
                 const visibleTweets = computed(() => {
@@ -221,7 +225,17 @@
                     renderXWidgets();
                 };
 
-                return { tweets, selectedCategory, filteredTweets, visibleTweets, setCategory, loadMore };
+                return { 
+                    tweets, 
+                    categories, 
+                    selectedCategory, 
+                    searchQuery, 
+                    filteredTweets, 
+                    visibleTweets, 
+                    dynamicStats, 
+                    setCategory, 
+                    loadMore 
+                };
             }
         }).mount('#app');
     </script>
