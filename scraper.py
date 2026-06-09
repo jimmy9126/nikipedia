@@ -4,110 +4,174 @@ import csv
 import requests
 import time
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+CATEGORIES = [
+    "Viral Growth Loops",
+    "Consumer Psychology",
+    "Fundraising & Exits",
+    "Satire & Humor",
+    "Product Strategy"
+]
+
 
 def categorize_tweet(text):
+    """
+    Categorize a tweet into exactly one predefined category using OpenAI.
+    """
     if not OPENAI_API_KEY:
-        print("CRITICAL: OPENAI_API_KEY environment variable is missing!")
-        return "Product Strategy"
-    
+        raise RuntimeError(
+            "OPENAI_API_KEY environment variable is not set."
+        )
+
     url = "https://api.openai.com/v1/chat/completions"
+
     headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {OPENAI_API_KEY}"
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
     }
-    
+
+    # Restoring structured definitions ensures the nano model retains razor-sharp accuracy
     payload = {
-        "model": "gpt-5.4-nano", # Swapped to the ultra-efficient high-volume classification model
+        "model": "gpt-5.4-nano-2026-03-17", # FIXED: Correct official OpenAI model string
         "messages": [
             {
                 "role": "system",
                 "content": (
-                    "You are an elite startup advisor analyzing tweets by builder and growth expert Nikita Bier. "
-                    "Your sole task is to classify the provided tweet into exactly ONE of these 5 categories:\n\n"
-                    "1. 'Viral Growth Loops': Content focused on viral mechanics, invitation systems, referral loops, acquisition tactics, retention hooks, app store optimization (ASO), or engineering high-growth features.\n"
-                    "2. 'Consumer Psychology': Insights regarding why users share things, identity construction, social validation dynamics, teenager/gen-z behavior trends, onboarding dopamine triggers, and human motivations behind app use.\n"
-                    "3. 'Fundraising & Exits': Content detailing venture capital relations, valuations, startup pitch decks, investor psychology, acquisition negotiations, cap tables, and startup economics.\n"
-                    "4. 'Satire & Humor': Sarcastic text, tech industry memes, self-deprecating jokes, office humor, cultural observations about traveling, and shitposting that lacks concrete business lessons.\n"
-                    "5. 'Product Strategy': Frameworks concerning feature prioritization, engineering updates, internal team velocity, design adjustments, analytics features, shipping code, infrastructure performance, or general product management methodologies.\n\n"
-                    "CRITICAL: Output ONLY the exact category title string. Do not include quotes, preamble, extra words, periods, or markdown blocks."
+                    "You are an expert startup analyst examining tweets by founder Nikita Bier.\n"
+                    "Classify the tweet into EXACTLY ONE of the following categories:\n\n"
+                    "1. 'Viral Growth Loops': Focused on referral setups, growth hacks, invitations, and acquisition hooks.\n"
+                    "2. 'Consumer Psychology': Focused on why users share, social validation, identity, and dopamine loops.\n"
+                    "3. 'Fundraising & Exits': Focused on venture capital, selling companies, pitches, valuations, and cap tables.\n"
+                    "4. 'Satire & Humor': Sarcastic comments, office memes, traveling observations, or tech jokes without business lessons.\n"
+                    "5. 'Product Strategy': Engineering updates, product management, team workflows, features, or design tweaks.\n\n"
+                    "Return ONLY the plain category name string. No quotes, periods, or formatting markdown."
                 )
             },
             {
                 "role": "user",
-                "content": f"Tweet to analyze: \"{text}\""
+                "content": text
             }
         ],
-        "temperature": 0.0 # Strict determinism for precise labels
+        "max_completion_tokens": 10
     }
-    
+
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=10)
-        res_json = response.json()
-        
-        if "error" in res_json:
-            print(f"OpenAI API Error: {res_json['error']['message']}")
-            return "Product Strategy"
-            
-        category = res_json['choices'][0]['message']['content'].strip()
-        
-        # Clean response string aggressively of trailing artifacts
-        category = category.replace("*", "").replace("`", "").replace('"', '').replace("'", "").strip()
+        response = requests.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+
+        response.raise_for_status()
+        result = response.json()
+
+        category = (
+            result["choices"][0]["message"]["content"]
+            .strip()
+            .replace('"', '')
+            .replace("'", "")
+            .replace("*", "")
+        )
+
+        # Handle trailing periods cleanly if any exist
         if category.endswith('.'):
             category = category[:-1].strip()
-            
-        valid_categories = ['Viral Growth Loops', 'Product Strategy', 'Consumer Psychology', 'Fundraising & Exits', 'Satire & Humor']
-        
-        if category in valid_categories:
-            return category
-        else:
-            for valid in valid_categories:
-                if valid.lower() == category.lower():
-                    return valid
-            print(f"DEBUG: Model returned unexpected variant string: '{category}'")
-            return "Product Strategy"
-    except Exception as e:
-        print(f"Network error during API connection: {e}")
+
+        for valid in CATEGORIES:
+            if category.lower() == valid.lower():
+                return valid
+
+        print(f"Unexpected category returned: '{category}'. Using fallback.")
         return "Product Strategy"
+
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP Error: {response.status_code}")
+        print(response.text)
+        return "Product Strategy"
+
+    except Exception as e:
+        print(f"Classification Error: {e}")
+        return "Product Strategy"
+
 
 def main():
     csv_path = "raw_tweets.csv"
     json_path = "docs/tweets.json"
-    
+
     if not os.path.exists(csv_path):
-        print("No raw_tweets.csv found.")
+        print(f"File not found: {csv_path}")
         return
+
+    os.makedirs("docs", exist_ok=True)
 
     database = []
     existing_ids = set()
-    
-    with open(csv_path, mode='r', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            tweet_id = str(row.get('id') or '').strip()
-            text = row.get('text') or ''
-            date = row.get('date') or ''
-            
-            if not tweet_id or "E+" in tweet_id or tweet_id.lower() == "none" or len(text) < 15:
-                continue
-                
-            if tweet_id not in existing_ids:
-                print(f"Categorizing item ID: {tweet_id}")
-                category = categorize_tweet(text)
-                print(f"-> Result: {category}")
-                
-                database.append({
-                    "id": tweet_id,
-                    "text": str(text),
-                    "category": category,
-                    "date": str(date)
-                })
-                existing_ids.add(tweet_id)
-                time.sleep(0.1) # Fast execution execution cadence
 
-    with open(json_path, "w", encoding='utf-8') as f:
-        json.dump(database, f, indent=2, ensure_ascii=False)
-    print(f"Success! Compiled {len(database)} valid insights into NikiPedia.")
+    # FIXED: Load existing records to preserve history and prevent destructive overwriting
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                database = json.load(f)
+                # Keep tracking strings safely
+                existing_ids = {str(t["id"]).strip() for t in database if "id" in t}
+        except Exception as e:
+            print(f"Notice: Could not parse existing tweets.json, starting fresh. ({e})")
+            database = []
+
+    has_new_updates = False
+
+    with open(csv_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+
+        for row in reader:
+            tweet_id = str(row.get("id", "")).strip()
+            text = str(row.get("text", "")).strip()
+            date = str(row.get("date", "")).strip()
+
+            if not tweet_id or tweet_id.lower() == "none" or "E+" in tweet_id:
+                continue
+
+            if len(text) < 15:
+                continue
+
+            if tweet_id in existing_ids:
+                continue
+
+            print(f"Categorizing: {tweet_id}")
+            category = categorize_tweet(text)
+            print(f" -> {category}")
+
+            # Append new discoveries right to the database array
+            database.append(
+                {
+                    "id": tweet_id,
+                    "text": text,
+                    "category": category,
+                    "date": date
+                }
+            )
+            existing_ids.add(tweet_id)
+            has_new_updates = True
+
+            # Rapid-fire optimization for paid API pipelines
+            time.sleep(0.15)
+
+    # Only write to disk if there is genuinely fresh material to update
+    if has_new_updates:
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(
+                database,
+                f,
+                indent=2,
+                ensure_ascii=False
+            )
+        print(f"\nSuccess!")
+        print(f"Database updated. Total repository size: {len(database)} tweets.")
+    else:
+        print("\nSync Complete. No new unique insights discovered.")
+
 
 if __name__ == "__main__":
     main()
