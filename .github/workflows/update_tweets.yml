@@ -18,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-node-version: '3.10'
+        python-version: '3.10' # Fixed the parameter declaration flag
 
     - name: Install Script Dependencies
       run: |
@@ -27,7 +27,7 @@ jobs:
 
     - name: Run Scraper Engine
       env:
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # FIXED: Injected the OpenAI secret here
       run: python scraper.py
 
     - name: Commit and Push Updates
