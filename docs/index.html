@@ -3,60 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NikiPedia — The Nikita Bier Archive</title>
+    <title>NikiPedia — / X</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    <style>
+        /* Custom scrollbar matching X's sleek layout constraints */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #000000; }
+        ::-webkit-scrollbar-thumb { background: #202327; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2f3336; }
+        body { background-color: #000000; color: #e7e9ea; }
+    </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
+<body class="min-h-screen font-sans antialiased selection:bg-blue-500/30">
 
-    <div id="app" class="max-w-6xl mx-auto px-4 py-8">
-        <header class="text-center mb-12 border-b border-gray-800 pb-8">
-            <h1 class="text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-                NikiPedia
-            </h1>
-            <p class="text-gray-400 mt-3 text-lg">Categorized startup & viral growth frameworks by Nikita Bier</p>
+    <div id="app" class="max-w-[1250px] mx-auto min-h-screen flex">
+        
+        <header class="w-[275px] shrink-0 sticky top-0 h-screen flex flex-col justify-between px-3 pb-4 pt-2 border-r border-[#2f3336]">
+            <div class="flex flex-col items-start w-full">
+                <div class="p-3 hover:bg-[#181818] rounded-full transition cursor-pointer inline-flex items-center justify-center mb-2 ml-1">
+                    <span class="text-3xl font-black tracking-tighter text-white">N</span>
+                </div>
+
+                <nav class="w-full space-y-1">
+                    <button @click="setCategory('All Topics')" 
+                       :class="selectedCategory === 'All Topics' ? 'font-bold text-white' : 'font-normal text-[#e7e9ea]'"
+                       class="flex items-center gap-5 w-full text-left px-4 py-3 rounded-full text-xl hover:bg-[#181818] transition group">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <span>Home Archive</span>
+                    </button>
+                    
+                    <button @click="setCategory('Viral Growth Loops')" 
+                       :class="selectedCategory === 'Viral Growth Loops' ? 'font-bold text-white' : 'font-normal text-[#e7e9ea]'"
+                       class="flex items-center gap-5 w-full text-left px-4 py-3 rounded-full text-xl hover:bg-[#181818] transition">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span>Growth Loops</span>
+                    </button>
+
+                    <button @click="setCategory('Consumer Psychology')" 
+                       :class="selectedCategory === 'Consumer Psychology' ? 'font-bold text-white' : 'font-normal text-[#e7e9ea]'"
+                       class="flex items-center gap-5 w-full text-left px-4 py-3 rounded-full text-xl hover:bg-[#181818] transition">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span>Psychology</span>
+                    </button>
+
+                    <button @click="setCategory('Fundraising & Exits')" 
+                       :class="selectedCategory === 'Fundraising & Exits' ? 'font-bold text-white' : 'font-normal text-[#e7e9ea]'"
+                       class="flex items-center gap-5 w-full text-left px-4 py-3 rounded-full text-xl hover:bg-[#181818] transition">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Exits & VC</span>
+                    </button>
+                </nav>
+
+                <button class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold w-[90%] py-3.5 rounded-full mt-6 text-lg transition hidden md:block shadow-sm">
+                    Post
+                </button>
+            </div>
+
+            <div class="flex items-center justify-between p-3 rounded-full hover:bg-[#181818] cursor-pointer transition w-full">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center font-bold text-black text-sm shadow-inner">
+                        NB
+                    </div>
+                    <div class="flex flex-col hidden lg:block leading-tight">
+                        <span class="font-bold text-[15px] text-white">Nikita Bier</span>
+                        <span class="text-[#71767b] text-[15px]">@nikitabier</span>
+                    </div>
+                </div>
+                <span class="text-[#e7e9ea] font-bold text-lg pr-2 hidden lg:inline">···</span>
+            </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <aside class="md:col-span-1">
-                <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Filter Topics</h2>
-                <div class="space-y-1">
-                    <button 
-                        v-for="cat in categories" 
-                        @click="setCategory(cat)"
-                        :class="selectedCategory === cat ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'"
-                        class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition">
-                        {{ cat }}
-                    </button>
-                </div>
-            </aside>
-
-            <main class="md:col-span-3">
-                <div v-if="visibleTweets.length === 0" class="text-center py-12 text-gray-500">
-                    No insights loaded under this section yet.
+        <main class="flex-1 min-w-0 max-w-[600px] border-r border-[#2f3336] min-h-screen">
+            <div class="sticky top-0 bg-black/80 backdrop-blur-md z-10 border-b border-[#2f3336]">
+                <div class="px-4 py-3">
+                    <h2 class="text-xl font-bold text-white tracking-tight">NikiPedia</h2>
+                    <p class="text-xs text-[#71767b] font-medium mt-0.5">{{ filteredTweets.length }} total knowledge crumbs</p>
                 </div>
                 
-                <div class="space-y-6">
-                    <div v-for="tweet in visibleTweets" :key="tweet.id" class="bg-gray-950 p-4 rounded-xl border border-gray-800 shadow-xl">
-                        <span class="inline-block text-xs font-bold px-2.5 py-1 rounded-full bg-gray-800 text-emerald-400 mb-4">
+                <div class="flex w-full text-center font-bold text-[15px] text-[#71767b]">
+                    <div class="flex-1 py-3.5 hover:bg-[#161616] cursor-pointer transition relative flex justify-center text-white">
+                        <span class="relative py-1">
+                            Insights Matrix
+                            <div class="absolute bottom-0 left-0 right-0 h-1 bg-[#1d9bf0] rounded-full"></div>
+                        </span>
+                    </div>
+                    <div class="flex-1 py-3.5 hover:bg-[#161616] cursor-pointer transition flex justify-center items-center">
+                        <span>Curation Deck</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 space-y-4">
+                <div v-if="visibleTweets.length === 0" class="text-center py-24 text-[#71767b] text-base font-medium">
+                    No matching knowledge elements found in this workspace view.
+                </div>
+                
+                <div v-for="tweet in visibleTweets" :key="tweet.id" class="border border-[#2f3336] rounded-xl overflow-hidden bg-black shadow-sm hover:bg-[#050505] transition">
+                    <div class="px-4 pt-3 pb-1 flex justify-between items-center bg-[#090909] border-b border-[#181818]">
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-[#1d9bf0]/10 text-[#1d9bf0] tracking-wide uppercase">
                             {{ tweet.category }}
                         </span>
-                        
-                        <blockquote class="twitter-tweet" data-theme="dark" data-conversation="none">
+                        <span class="text-xs text-[#71767b] font-semibold tracking-tight">
+                            {{ tweet.date }}
+                        </span>
+                    </div>
+                    
+                    <div class="p-2 bg-black">
+                        <blockquote class="twitter-tweet" data-theme="dark" data-conversation="none" data-chrome="noheader nofooter noborders transparent">
                             <a :href="'https://twitter.com/nikitabier/status/' + tweet.id"></a>
                         </blockquote>
                     </div>
                 </div>
+            </div>
 
-                <!-- Load More Pagination Control -->
-                <div v-if="visibleTweets.length < filteredTweets.length" class="text-center mt-12">
-                    <button @click="loadMore" class="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2.5 px-6 rounded-xl transition shadow-md">
-                        Load More Entries
-                    </button>
+            <div v-if="visibleTweets.length < filteredTweets.length" class="text-center py-8 border-t border-[#2f3336] mt-6">
+                <button @click="loadMore" class="text-[#1d9bf0] hover:bg-[#1d9bf0]/10 font-bold py-2.5 px-6 rounded-full transition text-[15px] tracking-tight">
+                    Show more insights
+                </button>
+            </div>
+        </main>
+
+        <aside class="w-[375px] shrink-0 sticky top-0 h-screen p-4 space-y-4 hidden lg:block">
+            <div class="relative w-full group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#71767b] group-focus-within:text-[#1d9bf0] transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
-            </main>
-        </div>
+                <input type="text" placeholder="Search NikiPedia" 
+                       class="w-full bg-[#202327] border border-transparent focus:border-[#1d9bf0] focus:bg-black text-[#e7e9ea] placeholder-[#71767b] text-[15px] rounded-full pl-12 pr-4 py-3 outline-none transition font-normal" />
+            </div>
+
+            <div class="bg-[#16181c] rounded-2xl border border-transparent overflow-hidden">
+                <h3 class="text-xl font-extrabold text-white px-4 pt-3 pb-2 tracking-tight">What's happening</h3>
+                
+                <div class="px-4 py-3 hover:bg-[#1c1f23] cursor-pointer transition border-t border-[#2f3336]/40 leading-snug">
+                    <div class="flex justify-between text-xs text-[#71767b] font-medium"><span>Product Management · Trending</span><span>···</span></div>
+                    <div class="font-bold text-[15px] text-white mt-0.5">Product Strategy</div>
+                    <div class="text-xs text-[#71767b] mt-1 font-medium">442 tactical breakdowns</div>
+                </div>
+
+                <div class="px-4 py-3 hover:bg-[#1c1f23] cursor-pointer transition border-t border-[#2f3336]/40 leading-snug">
+                    <div class="flex justify-between text-xs text-[#71767b] font-medium"><span>Growth Marketing · Trending</span><span>···</span></div>
+                    <div class="font-bold text-[15px] text-white mt-0.5">Viral Loops & K-Factor</div>
+                    <div class="text-xs text-[#71767b] mt-1 font-medium">Ultra-high density loops</div>
+                </div>
+
+                <div class="px-4 py-3 hover:bg-[#1c1f23] cursor-pointer transition border-t border-[#2f3336]/40 leading-snug">
+                    <div class="flex justify-between text-xs text-[#71767b] font-medium"><span>Consumer Apps · Trending</span><span>···</span></div>
+                    <div class="font-bold text-[15px] text-white mt-0.5">Gen-Z Psychology</div>
+                    <div class="text-xs text-[#71767b] mt-1 font-medium">Anonymity & identity metrics</div>
+                </div>
+                
+                <div class="px-4 py-3 text-[#1d9bf0] text-[15px] hover:bg-[#1c1f23] cursor-pointer transition border-t border-[#2f3336]/40 font-semibold">
+                    Show more
+                </div>
+            </div>
+
+            <footer class="px-4 text-xs text-[#71767b] font-normal tracking-tight space-y-1 leading-normal">
+                <div class="flex flex-wrap gap-x-3 gap-y-0.5">
+                    <a href="#" class="hover:underline">Terms of Service</a>
+                    <a href="#" class="hover:underline">Privacy Policy</a>
+                    <a href="#" class="hover:underline">Cookie Policy</a>
+                </div>
+                <div>© 2026 NikiPedia Corp. Inspired by / X.</div>
+            </footer>
+        </aside>
+
     </div>
 
     <script>
@@ -66,8 +179,7 @@
             setup() {
                 const tweets = ref([]);
                 const selectedCategory = ref('All Topics');
-                const displayLimit = ref(10); // Start with 10 to keep X embeds fast
-                const categories = ['All Topics', 'Viral Growth Loops', 'Product Strategy', 'Consumer Psychology', 'Fundraising & Exits', 'Satire & Humor'];
+                const displayLimit = ref(10);
 
                 const loadTweets = async () => {
                     try {
@@ -100,7 +212,7 @@
 
                 const setCategory = (cat) => {
                     selectedCategory.value = cat;
-                    displayLimit.value = 10; // Reset pagination window
+                    displayLimit.value = 10; 
                     renderXWidgets();
                 };
 
@@ -109,7 +221,7 @@
                     renderXWidgets();
                 };
 
-                return { tweets, categories, selectedCategory, filteredTweets, visibleTweets, setCategory, loadMore };
+                return { tweets, selectedCategory, filteredTweets, visibleTweets, setCategory, loadMore };
             }
         }).mount('#app');
     </script>
