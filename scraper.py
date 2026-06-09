@@ -17,9 +17,8 @@ def categorize_tweet(text):
         "Authorization": f"Bearer {OPENAI_API_KEY}"
     }
     
-    # High-context system engineering framework designed specifically for OpenAI instruction matching
     payload = {
-        "model": "gpt-4o",
+        "model": "gpt-5.4-nano", # Swapped to the ultra-efficient high-volume classification model
         "messages": [
             {
                 "role": "system",
@@ -39,7 +38,7 @@ def categorize_tweet(text):
                 "content": f"Tweet to analyze: \"{text}\""
             }
         ],
-        "temperature": 0.0 # Forces strict compliance and deterministic outcomes
+        "temperature": 0.0 # Strict determinism for precise labels
     }
     
     try:
@@ -52,7 +51,7 @@ def categorize_tweet(text):
             
         category = res_json['choices'][0]['message']['content'].strip()
         
-        # Clean response string aggressively of any trailing artifacts
+        # Clean response string aggressively of trailing artifacts
         category = category.replace("*", "").replace("`", "").replace('"', '').replace("'", "").strip()
         if category.endswith('.'):
             category = category[:-1].strip()
@@ -62,14 +61,13 @@ def categorize_tweet(text):
         if category in valid_categories:
             return category
         else:
-            # Flexible secondary verification fallback loop
             for valid in valid_categories:
                 if valid.lower() == category.lower():
                     return valid
-            print(f"DEBUG: OpenAI returned unexpected custom variant string: '{category}'")
+            print(f"DEBUG: Model returned unexpected variant string: '{category}'")
             return "Product Strategy"
     except Exception as e:
-        print(f"Network error during OpenAI connection: {e}")
+        print(f"Network error during API connection: {e}")
         return "Product Strategy"
 
 def main():
@@ -105,14 +103,11 @@ def main():
                     "date": str(date)
                 })
                 existing_ids.add(tweet_id)
-                
-                # We can speed up execution pacing now because OpenAI paid tiers 
-                # have massive RPM limits compared to Gemini's strict free tier.
-                time.sleep(0.2) 
+                time.sleep(0.1) # Fast execution execution cadence
 
     with open(json_path, "w", encoding='utf-8') as f:
         json.dump(database, f, indent=2, ensure_ascii=False)
-    print(f"Success! Re-categorized and deployed {len(database)} valid insights into NikiPedia.")
+    print(f"Success! Compiled {len(database)} valid insights into NikiPedia.")
 
 if __name__ == "__main__":
     main()
