@@ -230,6 +230,10 @@
                     renderXWidgets();
                 };
 
+                // Automatically tells X to re-scan and draw the embed card whenever the search query changes
+Vue.watch(searchQuery, () => {
+    renderXWidgets();
+});
                 return { 
                     tweets, 
                     categories, 
