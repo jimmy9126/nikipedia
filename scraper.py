@@ -8,16 +8,17 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 def categorize_tweet(text):
     if not GEMINI_API_KEY:
-        print("CRITICAL: GEMINI_API_KEY is not set in GitHub Repository Secrets!")
+        print("CRITICAL: GEMINI_API_KEY environment variable is missing!")
         return "Product Strategy"
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    # Updated to the active production model routing path for gemini-2.5-flash
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
     headers = {"Content-Type": "application/json"}
     
     prompt = f"""
     Categorize this tweet by startup founder Nikita Bier into exactly ONE of these topics: 
     'Viral Growth Loops', 'Product Strategy', 'Consumer Psychology', 'Fundraising & Exits', or 'Satire & Humor'.
-    Respond with ONLY the category name. Do not include quotes, markdown bolding, periods, or extra conversational text.
+    Respond with ONLY the category name. Do not include quotes, formatting, or extra text.
     
     Tweet: "{text}"
     """
@@ -27,24 +28,20 @@ def categorize_tweet(text):
         response = requests.post(url, headers=headers, json=payload, timeout=10)
         res_json = response.json()
         
-        # Log out API errors instantly to the console
         if "error" in res_json:
             print(f"Gemini API Error: {res_json['error']['message']} (Code: {res_json['error']['code']})")
             return "Product Strategy"
             
         category = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
-        
-        # Strip out markdown formatting if Gemini accidentally wraps it in ** or `
         category = category.replace("*", "").replace("`", "").strip()
         
         valid_categories = ['Viral Growth Loops', 'Product Strategy', 'Consumer Psychology', 'Fundraising & Exits', 'Satire & Humor']
         if category in valid_categories:
             return category
         else:
-            print(f"Gemini returned an invalid category string: '{category}'. Defaulting.")
             return "Product Strategy"
     except Exception as e:
-        print(f"Network error while connecting to Gemini: {e}")
+        print(f"Network error: {e}")
         return "Product Strategy"
 
 def main():
@@ -70,8 +67,6 @@ def main():
                 
             if tweet_id not in existing_ids:
                 print(f"Processing tweet ID: {tweet_id}")
-                
-                # Run the categorization
                 category = categorize_tweet(text)
                 print(f"-> Assigned Category: {category}")
                 
@@ -82,10 +77,7 @@ def main():
                     "date": str(date)
                 })
                 existing_ids.add(tweet_id)
-                
-                # CRUCIAL: Pause for 4.5 seconds between requests to perfectly respect 
-                # Gemini free tier limits (15 requests per minute max)
-                time.sleep(4.5)
+                time.sleep(4.5) # Respecting the free tier pacing loop
 
     with open(json_path, "w", encoding='utf-8') as f:
         json.dump(database, f, indent=2, ensure_ascii=False)
